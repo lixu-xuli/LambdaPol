@@ -1,0 +1,4 @@
+#!/bin/bash
+
+module use /scigroup/cvmfs/hallb/clas12/sw/modulefiles
+module load clas12
