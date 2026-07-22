@@ -6,6 +6,8 @@
 #include <Math/Vector3D.h>
 #include <Math/Vector4D.h>
 
+using namespace ROOT::Math;
+
 const Int_t iniVal = -999;
 const Float_t electronMass = 0.000511;
 const Float_t protonMass = 0.938272;
@@ -13,8 +15,50 @@ const Float_t neutronMass = 0.939565;
 const Float_t pionMass = 0.139570;
 const Float_t kaonMass = 0.493677;
 const Float_t lambdaMass = 1.115683;
-ROOT::Math::PxPyPzEVector prTarget(0, 0, 0, protonMass);
-ROOT::Math::PxPyPzEVector neTarget(0, 0, 0, neutronMass);
+PxPyPzEVector prTarget(0, 0, 0, protonMass);
+PxPyPzEVector neTarget(0, 0, 0, neutronMass);
+
+Float_t getTheta(Float_t x, Float_t y, Float_t z) {
+	Float_t cosTheta = z / TMath::Sqrt(x*x + y*y + z*z);
+	if (cosTheta > 1.0)  cosTheta = 1.0;
+	if (cosTheta < -1.0)  cosTheta = -1.0;
+	return TMath::ACos(cosTheta) / TMath::Pi() * 180;
+}
+
+Float_t getPhi(Float_t x, Float_t y) {
+	if (std::hypot(x, y) < 1e-12)
+		return 0;
+	else
+		return TMath::ATan2(y, x) / TMath::Pi() * 180;
+}
+
+Float_t getConeAngle(Float_t x1, Float_t y1, Float_t z1, Float_t x2, Float_t y2, Float_t z2) {
+	Float_t r1 = TMath::Sqrt(x1*x1 + y1*y1 + z1*z1);
+	Float_t r2 = TMath::Sqrt(x2*x2 + y2*y2 + z2*z2);
+	return TMath::ACos((x1*x2 + y1*y2 + z1*z2) / (r1*r2)) / TMath::Pi() * 180;
+}
+
+void setPVecValues(const PxPyPzEVector &PVec, Float_t &Px, Float_t &Py, Float_t &Pz, Float_t &P, Float_t &E, Float_t &M2, Float_t &M, Float_t &theta, Float_t &phi) {
+	Px = PVec.Px();
+	Py = PVec.Py();
+	Pz = PVec.Pz();
+	P = PVec.P();
+	E = PVec.E();
+	M2 = PVec.M2();
+	M = PVec.M();
+	theta = PVec.Theta() / TMath::Pi() * 180;
+	phi = PVec.Phi() / TMath::Pi() * 180;
+}
+
+void setPVecValues(const PxPyPzEVector &PVec, const XYZVector &xAxis, const XYZVector &yAxis, const XYZVector &zAxis, Float_t &Px, Float_t &Py, Float_t &Pz, Float_t &P, Float_t &E, Float_t &theta, Float_t &phi) {
+	Px = PVec.Vect().Dot(xAxis) / xAxis.R();
+	Py = PVec.Vect().Dot(yAxis) / yAxis.R();
+	Pz = PVec.Vect().Dot(zAxis) / zAxis.R();
+	P = PVec.P();
+	E = PVec.E();
+	theta = getTheta(Px, Py, Pz);
+	phi = getPhi(Px, Py);
+}
 
 struct globalInfo
 {
@@ -80,8 +124,8 @@ struct calInfo
 	Float_t luCAL[3]{};
 	Float_t lvCAL[3]{};
 	Float_t lwCAL[3]{};
-	Float_t phiCAL[3]{};
 	Float_t thetaCAL[3]{};
+	Float_t phiCAL[3]{};
 	Float_t timeCAL[3]{};
 	Float_t pathCAL[3]{};
 	Float_t energySumCAL{};
@@ -93,13 +137,24 @@ struct trackInfo
 	Float_t xDC[3]{};
 	Float_t yDC[3]{};
 	Float_t zDC[3]{};
-	Float_t phiDC[3]{};
 	Float_t thetaDC[3]{};
+	Float_t phiDC[3]{};
 	Float_t edgeDC[3]{};
 	Int_t sectorTrack{};
 	Float_t chi2Track{};
 	Int_t ndfTrack{};
 	Float_t chi2ndfTrack{};
+};
+
+struct ftofInfo
+{
+	Int_t sectorFTOF[3]{};
+	Float_t energyFTOF[3]{};
+	Float_t xFTOF[3]{};
+	Float_t yFTOF[3]{};
+	Float_t zFTOF[3]{};
+	Float_t timeFTOF[3]{};
+	Float_t pathFTOF[3]{};
 };
 
 struct cheInfo
@@ -148,11 +203,11 @@ struct radPhInfo
 	Float_t dPhiPh[10]{};
 };
 
-struct elDeteInfo: calInfo, trackInfo, cheInfo, radPhInfo {};
+struct elDeteInfo: calInfo, trackInfo, ftofInfo, cheInfo, radPhInfo {};
 
-struct kaDeteInfo: calInfo, trackInfo, cheInfo, richInfo {};
+struct kaDeteInfo: calInfo, trackInfo, ftofInfo, cheInfo, richInfo {};
 
-struct prDeteInfo: calInfo, trackInfo, cheInfo {};
+struct prDeteInfo: calInfo, trackInfo, ftofInfo, cheInfo {};
 
 class preParticle
 {
@@ -178,8 +233,8 @@ class preParticle
 			P = TMath::Sqrt(px*px + py*py + pz*pz);
 			E = TMath::Sqrt(P*P + M*M);
 			PVec.SetPxPyPzE(px, py, pz, E);
-			phi = PVec.Phi() / TMath::Pi() * 180;
 			theta = PVec.Theta() / TMath::Pi() * 180;
+			phi = PVec.Phi() / TMath::Pi() * 180;
 		}
 		Int_t pid{};
 		Float_t px{};
@@ -192,9 +247,9 @@ class preParticle
 		Float_t M{};
 		Float_t P{};
 		Float_t E{};
-		Float_t phi{};
 		Float_t theta{};
-		ROOT::Math::PxPyPzEVector PVec{};
+		Float_t phi{};
+		PxPyPzEVector PVec{};
 };
 
 class recParticle: public preParticle
@@ -223,95 +278,91 @@ class lamNoPi
 {
 	public:
 		lamNoPi() = default;
-		lamNoPi(ROOT::Math::PxPyPzEVector paraBeam, ROOT::Math::PxPyPzEVector paraTarget, ROOT::Math::PxPyPzEVector paraEl, ROOT::Math::PxPyPzEVector paraKa, ROOT::Math::PxPyPzEVector paraPr): elBeam(paraBeam), prTarget(paraTarget), elPVec(paraEl), kaPVec(paraKa), prPVec(paraPr) {
+		lamNoPi(PxPyPzEVector paraBeam, PxPyPzEVector paraTarget, PxPyPzEVector paraEl, PxPyPzEVector paraKa, PxPyPzEVector paraPr): elBeam(paraBeam), prTarget(paraTarget), elPVec(paraEl), kaPVec(paraKa), prPVec(paraPr) {
 			calculateVars();
 		}
 		void calculateVars() {
 			virPhPVec = elBeam - elPVec;
+			setPVecValues(virPhPVec, virPhPx, virPhPy, virPhPz, virPhP, virPhE, virPhM2, virPhM, virPhTheta, virPhPhi);
 			Q2 = -virPhPVec.M2();
 			W = (prTarget + elBeam - elPVec).M();
 			Xbj = Q2 / (2 * prTarget.M() * (elBeam.E() - elPVec.E()));
 			tKaon = (elBeam - elPVec - kaPVec).M2();
-			virPhPx = virPhPVec.Px();
-			virPhPy = virPhPVec.Py();
-			virPhPz = virPhPVec.Pz();
-			virPhP = virPhPVec.P();
-			virPhE = virPhPVec.E();
-			virPhPhi = virPhPVec.Phi() / TMath::Pi() * 180;
-			virPhTheta = virPhPVec.Theta() / TMath::Pi() * 180;
-			ROOT::Math::XYZVector zAxis = virPhPVec.Vect();  //virtual photon direction
-			ROOT::Math::XYZVector yAxis = elBeam.Vect().Cross(elPVec.Vect());  //vertical to leptonic plane
-			ROOT::Math::XYZVector xAxis = yAxis.Cross(zAxis);
-			ROOT::Math::XYZVector y1Axis = kaPVec.Vect().Cross(zAxis);  //vertical to hadronic plane
-			ROOT::Math::XYZVector y2Axis = kaPVec.Vect().Cross(prPVec.Vect());  //vertical to hadronic plane
-			phiVirPh = ROOT::Math::VectorUtil::Angle(y1Axis, yAxis) / TMath::Pi() * 180;
+			XYZVector zAxis = virPhPVec.Vect();  //virtual photon direction
+			XYZVector yAxis = elBeam.Vect().Cross(elPVec.Vect());  //vertical to leptonic plane
+			XYZVector xAxis = yAxis.Cross(zAxis);
+			XYZVector y1Axis = kaPVec.Vect().Cross(zAxis);  //vertical to hadronic plane
+			XYZVector y2Axis = kaPVec.Vect().Cross(prPVec.Vect());  //vertical to hadronic plane
+			phiVirPh = VectorUtil::Angle(y1Axis, yAxis) / TMath::Pi() * 180;
 			if (y1Axis.Dot(xAxis) > 0)  phiVirPh = 360 - phiVirPh;
-			phiProton = ROOT::Math::VectorUtil::Angle(y2Axis, yAxis) / TMath::Pi() * 180;
+			phiProton = VectorUtil::Angle(y2Axis, yAxis) / TMath::Pi() * 180;
 			if (y2Axis.Dot(xAxis) > 0)  phiProton = 360 - phiProton;
 			deltaPhi = phiVirPh - phiProton;
 			if (deltaPhi > 180)  deltaPhi -= 360;
 			else if (deltaPhi < -180)  deltaPhi += 360;
 			misLamPVec = elBeam + prTarget - elPVec - kaPVec;
-			misLamPx = misLamPVec.Px();
-			misLamPy = misLamPVec.Py();
-			misLamPz = misLamPVec.Pz();
-			misLamM2 = misLamPVec.M2();
-			misLamM = misLamPVec.M();
-			misLamP = misLamPVec.P();
-			misLamE = misLamPVec.E();
-			misLamPhi = misLamPVec.Phi() / TMath::Pi() * 180;
-			misLamTheta = misLamPVec.Theta() / TMath::Pi() * 180;
+			setPVecValues(misLamPVec, misLamPx, misLamPy, misLamPz, misLamP, misLamE, misLamM2, misLamM, misLamTheta, misLamPhi);
 			misPiPVec = elBeam + prTarget - elPVec - kaPVec - prPVec;
-			misPiPx = misPiPVec.Px();
-			misPiPy = misPiPVec.Py();
-			misPiPz = misPiPVec.Pz();
-			misPiM2 = misPiPVec.M2();
-			misPiM = misPiPVec.M();
-			misPiP = misPiPVec.P();
-			misPiE = misPiPVec.E();
-			misPiPhi = misPiPVec.Phi() / TMath::Pi() * 180;
-			misPiTheta = misPiPVec.Theta() / TMath::Pi() * 180;
-			ROOT::Math::PxPyPzEVector CMSys = virPhPVec + prTarget;
-			ROOT::Math::Boost boostCM(CMSys.BoostToCM());
-			ROOT::Math::PxPyPzEVector virPhPVecCM = boostCM(virPhPVec);
-			ROOT::Math::PxPyPzEVector kaPVecCM = boostCM(kaPVec);
-			cosThetaK = kaPVecCM.Vect().Dot(virPhPVecCM.Vect()) / (kaPVecCM.P() * virPhPVecCM.P());
+			setPVecValues(misPiPVec, misPiPx, misPiPy, misPiPz, misPiP, misPiE, misPiM2, misPiM, misPiTheta, misPiPhi);
 			exclChi2 = pow(misLamM2-lambdaMass*lambdaMass, 2) + pow(misPiM2-pionMass*pionMass, 2);
+			PxPyPzEVector CMSys = virPhPVec + prTarget;
+			Boost boostCM(CMSys.BoostToCM());
+			PxPyPzEVector virPhPVecCM = boostCM(virPhPVec);
+			PxPyPzEVector targetPVecCM = boostCM(prTarget);
+			PxPyPzEVector kaPVecCM = boostCM(kaPVec);
+			PxPyPzEVector misLamPVecCM = boostCM(misLamPVec);
+			PxPyPzEVector prPVecCM = boostCM(prPVec);
+			XYZVector zPrimeAxis = misLamPVecCM.Vect();
+			XYZVector yPrimeAxis = virPhPVecCM.Vect().Cross(kaPVecCM.Vect());
+			XYZVector xPrimeAxis = yPrimeAxis.Cross(zPrimeAxis);
+			setPVecValues(virPhPVecCM, xPrimeAxis, yPrimeAxis, zPrimeAxis, virPhPxCM, virPhPyCM, virPhPzCM, virPhPCM, virPhECM, virPhThetaCM, virPhPhiCM);
+			setPVecValues(targetPVecCM, xPrimeAxis, yPrimeAxis, zPrimeAxis, targetPxCM, targetPyCM, targetPzCM, targetPCM, targetECM, targetThetaCM, targetPhiCM);
+			setPVecValues(kaPVecCM, xPrimeAxis, yPrimeAxis, zPrimeAxis, kaPxCM, kaPyCM, kaPzCM, kaPCM, kaECM, kaThetaCM, kaPhiCM);
+			setPVecValues(misLamPVecCM, xPrimeAxis, yPrimeAxis, zPrimeAxis, misLamPxCM, misLamPyCM, misLamPzCM, misLamPCM, misLamECM, misLamThetaCM, misLamPhiCM);
+			setPVecValues(prPVecCM, xPrimeAxis, yPrimeAxis, zPrimeAxis, prPxCM, prPyCM, prPzCM, prPCM, prECM, prThetaCM, prPhiCM);
+			Boost boostLamRest(misLamPVecCM.BoostToCM());
+			PxPyPzEVector prPVecLamRest = boostLamRest(prPVecCM);
+			cosThetaK = kaPVecCM.Vect().Dot(virPhPVecCM.Vect()) / (kaPVecCM.P() * virPhPVecCM.P());
+			cosThetaPrZ = prPVecLamRest.Vect().Dot(zPrimeAxis) / (prPVecLamRest.P() * zPrimeAxis.R());
+			cosThetaPrX = prPVecLamRest.Vect().Dot(xPrimeAxis) / (prPVecLamRest.P() * xPrimeAxis.R());
+			cosThetaPrY = prPVecLamRest.Vect().Dot(yPrimeAxis) / (prPVecLamRest.P() * yPrimeAxis.R());
 		}
-		ROOT::Math::PxPyPzEVector elBeam{};
-		ROOT::Math::PxPyPzEVector prTarget{};
-		ROOT::Math::PxPyPzEVector elPVec{};
-		ROOT::Math::PxPyPzEVector kaPVec{};
-		ROOT::Math::PxPyPzEVector prPVec{};
-		ROOT::Math::PxPyPzEVector virPhPVec{};
-		ROOT::Math::PxPyPzEVector misLamPVec{};
-		ROOT::Math::PxPyPzEVector misPiPVec{};
+		PxPyPzEVector elBeam{};
+		PxPyPzEVector prTarget{};
+		PxPyPzEVector elPVec{};
+		PxPyPzEVector kaPVec{};
+		PxPyPzEVector prPVec{};
+		PxPyPzEVector virPhPVec{};
+		PxPyPzEVector misLamPVec{};
+		PxPyPzEVector misPiPVec{};
 		Float_t virPhPx{};
 		Float_t virPhPy{};
 		Float_t virPhPz{};
-		Float_t virPhM2{};
 		Float_t virPhP{};
 		Float_t virPhE{};
-		Float_t virPhPhi{};
+		Float_t virPhM2{};
+		Float_t virPhM{};
 		Float_t virPhTheta{};
+		Float_t virPhPhi{};
 		Float_t misLamPx{};
 		Float_t misLamPy{};
 		Float_t misLamPz{};
-		Float_t misLamM2{};
-		Float_t misLamM{};
 		Float_t misLamP{};
 		Float_t misLamE{};
-		Float_t misLamPhi{};
+		Float_t misLamM2{};
+		Float_t misLamM{};
 		Float_t misLamTheta{};
+		Float_t misLamPhi{};
 		Float_t misPiPx{};
 		Float_t misPiPy{};
 		Float_t misPiPz{};
-		Float_t misPiM2{};
-		Float_t misPiM{};
 		Float_t misPiP{};
 		Float_t misPiE{};
-		Float_t misPiPhi{};
+		Float_t misPiM2{};
+		Float_t misPiM{};
 		Float_t misPiTheta{};
+		Float_t misPiPhi{};
+		Float_t exclChi2{};
 		Float_t Q2{};
 		Float_t W{};
 		Float_t Xbj{};
@@ -319,35 +370,64 @@ class lamNoPi
 		Float_t phiVirPh{};
 		Float_t phiProton{};
 		Float_t deltaPhi{};
+		Float_t virPhPxCM{};
+		Float_t virPhPyCM{};
+		Float_t virPhPzCM{};
+		Float_t virPhPCM{};
+		Float_t virPhECM{};
+		Float_t virPhThetaCM{};
+		Float_t virPhPhiCM{};
+		Float_t targetPxCM{};
+		Float_t targetPyCM{};
+		Float_t targetPzCM{};
+		Float_t targetPCM{};
+		Float_t targetECM{};
+		Float_t targetThetaCM{};
+		Float_t targetPhiCM{};
+		Float_t kaPxCM{};
+		Float_t kaPyCM{};
+		Float_t kaPzCM{};
+		Float_t kaPCM{};
+		Float_t kaECM{};
+		Float_t kaThetaCM{};
+		Float_t kaPhiCM{};
+		Float_t misLamPxCM{};
+		Float_t misLamPyCM{};
+		Float_t misLamPzCM{};
+		Float_t misLamPCM{};
+		Float_t misLamECM{};
+		Float_t misLamThetaCM{};
+		Float_t misLamPhiCM{};
+		Float_t prPxCM{};
+		Float_t prPyCM{};
+		Float_t prPzCM{};
+		Float_t prPCM{};
+		Float_t prECM{};
+		Float_t prThetaCM{};
+		Float_t prPhiCM{};
 		Float_t cosThetaK{};
-		Float_t exclChi2{};
+		Float_t cosThetaPrZ{};
+		Float_t cosThetaPrX{};
+		Float_t cosThetaPrY{};
 };
 
 class lamHasPi: public lamNoPi
 {
 	public:
 		lamHasPi() = default;
-		lamHasPi(ROOT::Math::PxPyPzEVector paraBeam, ROOT::Math::PxPyPzEVector paraTarget, ROOT::Math::PxPyPzEVector paraEl, ROOT::Math::PxPyPzEVector paraKa, ROOT::Math::PxPyPzEVector paraPr, ROOT::Math::PxPyPzEVector paraPi): lamNoPi(paraBeam, paraTarget, paraEl, paraKa, paraPr), piPVec(paraPi) {
+		lamHasPi(PxPyPzEVector paraBeam, PxPyPzEVector paraTarget, PxPyPzEVector paraEl, PxPyPzEVector paraKa, PxPyPzEVector paraPr, PxPyPzEVector paraPi): lamNoPi(paraBeam, paraTarget, paraEl, paraKa, paraPr), piPVec(paraPi) {
 			calculateVarsWithPi();
 		}
 		void calculateVarsWithPi() {
 			lambdaPVec = prPVec + piPVec;
-			lambdaPx = lambdaPVec.Px();
-			lambdaPy = lambdaPVec.Py();
-			lambdaPz = lambdaPVec.Pz();
-			lambdaM2 = lambdaPVec.M2();
-			lambdaM = lambdaPVec.M();
-			lambdaP = lambdaPVec.P();
-			lambdaE = lambdaPVec.E();
-			lambdaPhi = lambdaPVec.Phi() / TMath::Pi() * 180;
-			lambdaTheta = lambdaPVec.Theta() / TMath::Pi() * 180;
+			setPVecValues(lambdaPVec, lambdaPx, lambdaPy, lambdaPz, lambdaP, lambdaE, lambdaM2, lambdaM, lambdaTheta, lambdaPhi);
 			tLambda = (prPVec + piPVec - prTarget).M2();
-			ROOT::Math::PxPyPzEVector misX = elBeam + prTarget - elPVec - kaPVec - prPVec - piPVec;
+			PxPyPzEVector misX = elBeam + prTarget - elPVec - kaPVec - prPVec - piPVec;
 			mM2ep2ekpPiX = misX.M2();
 			mPep2ekpPiX = misX.P();
 		}
-		ROOT::Math::PxPyPzEVector piPVec{};
-		ROOT::Math::PxPyPzEVector lambdaPVec{};
+		PxPyPzEVector piPVec{};
+		PxPyPzEVector lambdaPVec{};
 		Float_t lambdaPx{};
 		Float_t lambdaPy{};
 		Float_t lambdaPz{};
@@ -355,8 +435,8 @@ class lamHasPi: public lamNoPi
 		Float_t lambdaM{};
 		Float_t lambdaP{};
 		Float_t lambdaE{};
-		Float_t lambdaPhi{};
 		Float_t lambdaTheta{};
+		Float_t lambdaPhi{};
 		Float_t tLambda{};
 		Float_t mM2ep2ekpPiX{};
 		Float_t mPep2ekpPiX{};
@@ -366,27 +446,19 @@ class sigmaZero: public lamHasPi
 {
 	public:
 		sigmaZero() = default;
-		sigmaZero(ROOT::Math::PxPyPzEVector paraBeam, ROOT::Math::PxPyPzEVector paraTarget, ROOT::Math::PxPyPzEVector paraEl, ROOT::Math::PxPyPzEVector paraKa, ROOT::Math::PxPyPzEVector paraPr, ROOT::Math::PxPyPzEVector paraPi, ROOT::Math::PxPyPzEVector paraPh): lamHasPi(paraBeam, paraTarget, paraEl, paraKa, paraPr, paraPi), phPVec(paraPh) {
+		sigmaZero(PxPyPzEVector paraBeam, PxPyPzEVector paraTarget, PxPyPzEVector paraEl, PxPyPzEVector paraKa, PxPyPzEVector paraPr, PxPyPzEVector paraPi, PxPyPzEVector paraPh): lamHasPi(paraBeam, paraTarget, paraEl, paraKa, paraPr, paraPi), phPVec(paraPh) {
 			calculateVarsSigmaZero();
 		}
 		void calculateVarsSigmaZero() {
 			sigmaPVec = prPVec + piPVec + phPVec;
-			sigmaPx = sigmaPVec.Px();
-			sigmaPy = sigmaPVec.Py();
-			sigmaPz = sigmaPVec.Pz();
-			sigmaM2 = sigmaPVec.M2();
-			sigmaM = sigmaPVec.M();
-			sigmaP = sigmaPVec.P();
-			sigmaE = sigmaPVec.E();
-			sigmaPhi = sigmaPVec.Phi() / TMath::Pi() * 180;
-			sigmaTheta = sigmaPVec.Theta() / TMath::Pi() * 180;
+			setPVecValues(sigmaPVec, sigmaPx, sigmaPy, sigmaPz, sigmaP, sigmaE, sigmaM2, sigmaM, sigmaTheta, sigmaPhi);
 			tSigma = (prPVec + piPVec + phPVec - prTarget).M2();
-			ROOT::Math::PxPyPzEVector misX = elBeam + prTarget - elPVec - kaPVec - prPVec - piPVec - phPVec;
+			PxPyPzEVector misX = elBeam + prTarget - elPVec - kaPVec - prPVec - piPVec - phPVec;
 			mM2ep2ekpPigX = misX.M2();
 			mPep2ekpPigX = misX.P();
 		}
-		ROOT::Math::PxPyPzEVector phPVec{};
-		ROOT::Math::PxPyPzEVector sigmaPVec{};
+		PxPyPzEVector phPVec{};
+		PxPyPzEVector sigmaPVec{};
 		Float_t sigmaPx{};
 		Float_t sigmaPy{};
 		Float_t sigmaPz{};
@@ -394,8 +466,8 @@ class sigmaZero: public lamHasPi
 		Float_t sigmaM{};
 		Float_t sigmaP{};
 		Float_t sigmaE{};
-		Float_t sigmaPhi{};
 		Float_t sigmaTheta{};
+		Float_t sigmaPhi{};
 		Float_t tSigma{};
 		Float_t mM2ep2ekpPigX{};
 		Float_t mPep2ekpPigX{};
@@ -405,34 +477,18 @@ class pipiBkg: public lamNoPi
 {
 	public:
 		pipiBkg() = default;
-		pipiBkg(ROOT::Math::PxPyPzEVector paraBeam, ROOT::Math::PxPyPzEVector paraTarget, ROOT::Math::PxPyPzEVector paraEl, ROOT::Math::PxPyPzEVector paraKa, ROOT::Math::PxPyPzEVector paraPr, ROOT::Math::PxPyPzEVector paraPip): lamNoPi(paraBeam, paraTarget, paraEl, paraKa, paraPr), pipPVec(paraPip) {
+		pipiBkg(PxPyPzEVector paraBeam, PxPyPzEVector paraTarget, PxPyPzEVector paraEl, PxPyPzEVector paraKa, PxPyPzEVector paraPr, PxPyPzEVector paraPip): lamNoPi(paraBeam, paraTarget, paraEl, paraKa, paraPr), pipPVec(paraPip) {
 			calculateVarsPipi();
 		}
 		void calculateVarsPipi() {
-			ROOT::Math::PxPyPzEVector realMisPrPiPVec = elBeam + prTarget - elPVec - pipPVec;
-			ROOT::Math::PxPyPzEVector realMisPiPVec = elBeam + prTarget - elPVec - prPVec - pipPVec;
-			realMisPrPiPx = realMisPrPiPVec.Px();
-			realMisPrPiPy = realMisPrPiPVec.Py();
-			realMisPrPiPz = realMisPrPiPVec.Pz();
-			realMisPrPiM2 = realMisPrPiPVec.M2();
-			realMisPrPiM = realMisPrPiPVec.M();
-			realMisPrPiP = realMisPrPiPVec.P();
-			realMisPrPiE = realMisPrPiPVec.E();
-			realMisPrPiPhi = realMisPrPiPVec.Phi() / TMath::Pi() * 180;
-			realMisPrPiTheta = realMisPrPiPVec.Theta() / TMath::Pi() * 180;
-			realMisPiPx = realMisPiPVec.Px();
-			realMisPiPy = realMisPiPVec.Py();
-			realMisPiPz = realMisPiPVec.Pz();
-			realMisPiM2 = realMisPiPVec.M2();
-			realMisPiM = realMisPiPVec.M();
-			realMisPiP = realMisPiPVec.P();
-			realMisPiE = realMisPiPVec.E();
-			realMisPiPhi = realMisPiPVec.Phi() / TMath::Pi() * 180;
-			realMisPiTheta = realMisPiPVec.Theta() / TMath::Pi() * 180;
+			PxPyPzEVector realMisPrPiPVec = elBeam + prTarget - elPVec - pipPVec;
+			setPVecValues(realMisPrPiPVec, realMisPrPiPx, realMisPrPiPy, realMisPrPiPz, realMisPrPiP, realMisPrPiE, realMisPrPiM2, realMisPrPiM, realMisPrPiTheta, realMisPrPiPhi);
+			PxPyPzEVector realMisPiPVec = elBeam + prTarget - elPVec - prPVec - pipPVec;
+			setPVecValues(realMisPiPVec, realMisPiPx, realMisPiPy, realMisPiPz, realMisPiP, realMisPiE, realMisPiM2, realMisPiM, realMisPiTheta, realMisPiPhi);
 		}
-		ROOT::Math::PxPyPzEVector pipPVec{};
-		ROOT::Math::PxPyPzEVector realMisPrPiPVec{};
-		ROOT::Math::PxPyPzEVector realMisPiPVec{};
+		PxPyPzEVector pipPVec{};
+		PxPyPzEVector realMisPrPiPVec{};
+		PxPyPzEVector realMisPiPVec{};
 		Float_t realMisPiPx{};
 		Float_t realMisPiPy{};
 		Float_t realMisPiPz{};
@@ -440,8 +496,8 @@ class pipiBkg: public lamNoPi
 		Float_t realMisPiM{};
 		Float_t realMisPiP{};
 		Float_t realMisPiE{};
-		Float_t realMisPiPhi{};
 		Float_t realMisPiTheta{};
+		Float_t realMisPiPhi{};
 		Float_t realMisPrPiPx{};
 		Float_t realMisPrPiPy{};
 		Float_t realMisPrPiPz{};
@@ -449,8 +505,8 @@ class pipiBkg: public lamNoPi
 		Float_t realMisPrPiM{};
 		Float_t realMisPrPiP{};
 		Float_t realMisPrPiE{};
-		Float_t realMisPrPiPhi{};
 		Float_t realMisPrPiTheta{};
+		Float_t realMisPrPiPhi{};
 };
 
 #endif

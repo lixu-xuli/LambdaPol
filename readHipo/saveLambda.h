@@ -15,8 +15,8 @@ class preEvent
 		}
 		globalInfo myGlobalInfo{};
 		eventInfo myEventInfo{};
-		ROOT::Math::PxPyPzEVector elBeam{};
-		ROOT::Math::PxPyPzEVector target{};
+		PxPyPzEVector elBeam{};
+		PxPyPzEVector target{};
 };
 
 class preLambdaEvent: public preEvent
@@ -58,7 +58,7 @@ class preLambdaEvent: public preEvent
 			}
 			return false;
 		}
-		virtual Float_t getExclChi2(const ROOT::Math::PxPyPzEVector &elPVec, const ROOT::Math::PxPyPzEVector &kaPVec, const ROOT::Math::PxPyPzEVector &prPVec) = 0;
+		virtual Float_t getExclChi2(const PxPyPzEVector &elPVec, const PxPyPzEVector &kaPVec, const PxPyPzEVector &prPVec) = 0;
 		recParticle elPart{};
 		recParticle kaPart{};
 		recParticle prPart{};
@@ -83,9 +83,9 @@ class recLambdaEvent: public preLambdaEvent
 			}
 			return false;
 		}
-		Float_t getExclChi2(const ROOT::Math::PxPyPzEVector &elPVec, const ROOT::Math::PxPyPzEVector &kaPVec, const ROOT::Math::PxPyPzEVector &prPVec) {
-			ROOT::Math::PxPyPzEVector misLam = elBeam + target - elPVec - kaPVec;
-			ROOT::Math::PxPyPzEVector misPi = elBeam + target - elPVec - kaPVec - prPVec;
+		Float_t getExclChi2(const PxPyPzEVector &elPVec, const PxPyPzEVector &kaPVec, const PxPyPzEVector &prPVec) {
+			PxPyPzEVector misLam = elBeam + target - elPVec - kaPVec;
+			PxPyPzEVector misPi = elBeam + target - elPVec - kaPVec - prPVec;
 			return pow(misLam.M2()-lambdaMass*lambdaMass, 2) + pow(misPi.M2()-pionMass*pionMass, 2);
 		}
 		lamNoPi myRecLamNoPi{};
@@ -107,14 +107,14 @@ class recPipiBkgEvent: public preLambdaEvent
 			}
 			return false;
 		}
-		Float_t getExclChi2(const ROOT::Math::PxPyPzEVector &elPVec, const ROOT::Math::PxPyPzEVector &kaPVec, const ROOT::Math::PxPyPzEVector &prPVec) {
-			ROOT::Math::PxPyPzEVector newKaPVec = getKaPVec(kaPVec);
-			ROOT::Math::PxPyPzEVector misLam = elBeam + target - elPVec - newKaPVec;
-			ROOT::Math::PxPyPzEVector misPi = elBeam + target - elPVec - newKaPVec - prPVec;
+		Float_t getExclChi2(const PxPyPzEVector &elPVec, const PxPyPzEVector &kaPVec, const PxPyPzEVector &prPVec) {
+			PxPyPzEVector newKaPVec = getKaPVec(kaPVec);
+			PxPyPzEVector misLam = elBeam + target - elPVec - newKaPVec;
+			PxPyPzEVector misPi = elBeam + target - elPVec - newKaPVec - prPVec;
 			return pow(misLam.M2()-lambdaMass*lambdaMass, 2) + pow(misPi.M2()-pionMass*pionMass, 2);
 		}
-		static ROOT::Math::PxPyPzEVector getKaPVec(const ROOT::Math::PxPyPzEVector &paraPip) {
-			ROOT::Math::PxPyPzEVector paraKa = paraPip;
+		static PxPyPzEVector getKaPVec(const PxPyPzEVector &paraPip) {
+			PxPyPzEVector paraKa = paraPip;
 			paraKa.SetE(TMath::Sqrt(paraPip.P2() + kaonMass*kaonMass));
 			return paraKa;
 		}

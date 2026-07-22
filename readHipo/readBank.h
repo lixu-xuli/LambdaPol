@@ -167,21 +167,7 @@ Int_t trajSector(Float_t phi) {
     return 0;
 }
 
-Float_t getPhi(Float_t x, Float_t y) {
-	return TMath::ATan2(y, x) / TMath::Pi() * 180;
-}
-
-Float_t getTheta(Float_t x, Float_t y, Float_t z) {
-	return TMath::ACos(z / TMath::Sqrt(x*x + y*y + z*z)) / TMath::Pi() * 180;
-}
-
-Float_t getConeAngle(Float_t x1, Float_t y1, Float_t z1, Float_t x2, Float_t y2, Float_t z2) {
-	Float_t r1 = TMath::Sqrt(x1*x1 + y1*y1 + z1*z1);
-	Float_t r2 = TMath::Sqrt(x2*x2 + y2*y2 + z2*z2);
-	return TMath::ACos((x1*x2 + y1*y2 + z1*z2) / (r1*r2)) / TMath::Pi() * 180;
-}
-
-void readCALInfo(const hipo::bank &calBank, Int_t pindex, Int_t (&sectorCAL)[3], Float_t (&energyCAL)[3], Float_t (&xCAL)[3], Float_t (&yCAL)[3], Float_t (&zCAL)[3], Float_t (&luCAL)[3], Float_t (&lvCAL)[3], Float_t (&lwCAL)[3], Float_t (&phiCAL)[3], Float_t (&thetaCAL)[3], Float_t (&timeCAL)[3], Float_t (&pathCAL)[3], Float_t &energySumCAL) {
+void readCALInfo(const hipo::bank &calBank, Int_t pindex, Int_t (&sectorCAL)[3], Float_t (&energyCAL)[3], Float_t (&xCAL)[3], Float_t (&yCAL)[3], Float_t (&zCAL)[3], Float_t (&luCAL)[3], Float_t (&lvCAL)[3], Float_t (&lwCAL)[3], Float_t (&thetaCAL)[3], Float_t (&phiCAL)[3], Float_t (&timeCAL)[3], Float_t (&pathCAL)[3], Float_t &energySumCAL) {
 	Int_t nCal = calBank.getRows();
 	for (Int_t iCal=0; iCal<nCal; iCal++) {
 		Int_t pindexCal = calBank.getInt("pindex", iCal);
@@ -200,15 +186,15 @@ void readCALInfo(const hipo::bank &calBank, Int_t pindex, Int_t (&sectorCAL)[3],
 		luCAL[iLayer] = calBank.getFloat("lu", iCal);
 		lvCAL[iLayer] = calBank.getFloat("lv", iCal);
 		lwCAL[iLayer] = calBank.getFloat("lw", iCal);
-		phiCAL[iLayer] = getPhi(xCAL[iLayer], yCAL[iLayer]);
 		thetaCAL[iLayer] = getTheta(xCAL[iLayer], yCAL[iLayer], zCAL[iLayer]);
+		phiCAL[iLayer] = getPhi(xCAL[iLayer], yCAL[iLayer]);
 		timeCAL[iLayer] = calBank.getFloat("time", iCal);
 		pathCAL[iLayer] = calBank.getFloat("path", iCal);
 	}
 	energySumCAL = energyCAL[0] + energyCAL[1] + energyCAL[2];
 }
 
-void readDCInfo(const hipo::bank &trajBank, Int_t pindex, Int_t (&sectorDC)[3], Float_t (&xDC)[3], Float_t (&yDC)[3], Float_t (&zDC)[3], Float_t (&phiDC)[3], Float_t (&thetaDC)[3], Float_t (&edgeDC)[3]) {
+void readDCInfo(const hipo::bank &trajBank, Int_t pindex, Int_t (&sectorDC)[3], Float_t (&xDC)[3], Float_t (&yDC)[3], Float_t (&zDC)[3], Float_t (&thetaDC)[3], Float_t (&phiDC)[3], Float_t (&edgeDC)[3]) {
 	Int_t nTraj = trajBank.getRows();
 	for (Int_t iTraj=0; iTraj<nTraj; iTraj++) {
 		Int_t pindexTraj = trajBank.getInt("pindex", iTraj);
@@ -225,8 +211,8 @@ void readDCInfo(const hipo::bank &trajBank, Int_t pindex, Int_t (&sectorDC)[3], 
 		yDC[iLayer] = trajBank.getFloat("y", iTraj);
 		zDC[iLayer] = trajBank.getFloat("z", iTraj);
 		edgeDC[iLayer] = trajBank.getFloat("edge", iTraj);
-		phiDC[iLayer] = getPhi(xDC[iLayer], yDC[iLayer]);
 		thetaDC[iLayer] = getTheta(xDC[iLayer], yDC[iLayer], zDC[iLayer]);
+		phiDC[iLayer] = getPhi(xDC[iLayer], yDC[iLayer]);
 		sectorDC[iLayer] = trajSector(phiDC[iLayer]);
 	}
 }
@@ -242,6 +228,29 @@ void readTrackInfo(const hipo::bank &trackBank, Int_t pindex, Int_t &sectorTrack
 		chi2Track = trackBank.getFloat("chi2", iTrack);
 		ndfTrack = trackBank.getInt("NDF", iTrack);
 		chi2ndfTrack = chi2Track / ndfTrack;
+	}
+}
+
+void readFTOFInfo(const hipo::bank &sciBank, Int_t pindex, Int_t (&sectorFTOF)[3], Float_t (&energyFTOF)[3], Float_t (&xFTOF)[3], Float_t (&yFTOF)[3], Float_t (&zFTOF)[3], Float_t (&timeFTOF)[3], Float_t (&pathFTOF)[3]) {
+	Int_t nSci = sciBank.getRows();
+	for (Int_t iSci=0; iSci<nSci; iSci++) {
+		Int_t pindexSci = sciBank.getInt("pindex", iSci);
+		if (pindexSci != pindex)  continue;
+		Int_t detectorSci = sciBank.getInt("detector", iSci);
+		if (detectorSci != 12)  continue;
+		Int_t layerSci = sciBank.getInt("layer", iSci);
+		Int_t iLayer = -1;
+		if (layerSci == 1)  iLayer = 0;
+		else if (layerSci == 2)  iLayer = 1;
+		else if (layerSci == 3)  iLayer = 2;
+		else  continue;
+		sectorFTOF[iLayer] = sciBank.getInt("sector", iSci);
+		energyFTOF[iLayer] = sciBank.getFloat("energy", iSci);
+		xFTOF[iLayer] = sciBank.getFloat("x", iSci);
+		yFTOF[iLayer] = sciBank.getFloat("y", iSci);
+		zFTOF[iLayer] = sciBank.getFloat("z", iSci);
+		timeFTOF[iLayer] = sciBank.getFloat("time", iSci);
+		pathFTOF[iLayer] = sciBank.getFloat("path", iSci);
 	}
 }
 
@@ -316,45 +325,48 @@ void readRadPhInfo(const vector<recParticle> &phVect, const recParticle &myPart,
 	}
 }
 
-void readElDeteBank(const hipo::bank &calBank, const hipo::bank &trajBank, const hipo::bank &trackBank, const hipo::bank &cheBank, const vector<recParticle> &phVect, const vector<recParticle> &partVect, vector<elDeteInfo> &partDeteVect) {
+void readElDeteBank(const hipo::bank &calBank, const hipo::bank &trajBank, const hipo::bank &trackBank, const hipo::bank &sciBank, const hipo::bank &cheBank, const vector<recParticle> &phVect, const vector<recParticle> &partVect, vector<elDeteInfo> &partDeteVect) {
 	partDeteVect.clear();
 	Int_t num = partVect.size();
 	for (Int_t iPart=0; iPart<num; iPart++) {
 		elDeteInfo myInfo{};
 		Int_t pindex = partVect[iPart].pindex;
-		readCALInfo(calBank, pindex, myInfo.sectorCAL, myInfo.energyCAL, myInfo.xCAL, myInfo.yCAL, myInfo.zCAL, myInfo.luCAL, myInfo.lvCAL, myInfo.lwCAL, myInfo.phiCAL, myInfo.thetaCAL, myInfo.timeCAL, myInfo.pathCAL, myInfo.energySumCAL);
-		readDCInfo(trajBank, pindex, myInfo.sectorDC, myInfo.xDC, myInfo.yDC, myInfo.zDC, myInfo.phiDC, myInfo.thetaDC, myInfo.edgeDC);
+		readCALInfo(calBank, pindex, myInfo.sectorCAL, myInfo.energyCAL, myInfo.xCAL, myInfo.yCAL, myInfo.zCAL, myInfo.luCAL, myInfo.lvCAL, myInfo.lwCAL, myInfo.thetaCAL, myInfo.phiCAL, myInfo.timeCAL, myInfo.pathCAL, myInfo.energySumCAL);
+		readDCInfo(trajBank, pindex, myInfo.sectorDC, myInfo.xDC, myInfo.yDC, myInfo.zDC, myInfo.thetaDC, myInfo.phiDC, myInfo.edgeDC);
 		readTrackInfo(trackBank, pindex, myInfo.sectorTrack, myInfo.chi2Track, myInfo.ndfTrack, myInfo.chi2ndfTrack);
+		readFTOFInfo(sciBank, pindex, myInfo.sectorFTOF, myInfo.energyFTOF, myInfo.xFTOF, myInfo.yFTOF, myInfo.zFTOF, myInfo.timeFTOF, myInfo.pathFTOF);
 		readCheInfo(cheBank, pindex, myInfo.detectorChe, myInfo.sectorChe, myInfo.npheChe, myInfo.timeChe, myInfo.pathChe, myInfo.chi2Che, myInfo.xChe, myInfo.yChe, myInfo.zChe, myInfo.dThetaChe, myInfo.dPhiChe, myInfo.statusChe);
 		readRadPhInfo(phVect, partVect[iPart], myInfo.nPh, myInfo.numPh, myInfo.pindexPh, myInfo.pPh, myInfo.pxPh, myInfo.pyPh, myInfo.pzPh, myInfo.anglePh, myInfo.dThetaPh, myInfo.dPhiPh);
 		partDeteVect.emplace_back(myInfo);
 	}
 }
 
-void readKaDeteBank(const hipo::bank &calBank, const hipo::bank &trajBank, const hipo::bank &trackBank, const hipo::bank &cheBank, const hipo::bank &richBank, const vector<recParticle> &partVect, vector<kaDeteInfo> &partDeteVect) {
+void readKaDeteBank(const hipo::bank &calBank, const hipo::bank &trajBank, const hipo::bank &trackBank, const hipo::bank &sciBank, const hipo::bank &cheBank, const hipo::bank &richBank, const vector<recParticle> &partVect, vector<kaDeteInfo> &partDeteVect) {
 	partDeteVect.clear();
 	Int_t num = partVect.size();
 	for (Int_t iPart=0; iPart<num; iPart++) {
 		kaDeteInfo myInfo{};
 		Int_t pindex = partVect[iPart].pindex;
-		readCALInfo(calBank, pindex, myInfo.sectorCAL, myInfo.energyCAL, myInfo.xCAL, myInfo.yCAL, myInfo.zCAL, myInfo.luCAL, myInfo.lvCAL, myInfo.lwCAL, myInfo.phiCAL, myInfo.thetaCAL, myInfo.timeCAL, myInfo.pathCAL, myInfo.energySumCAL);
-		readDCInfo(trajBank, pindex, myInfo.sectorDC, myInfo.xDC, myInfo.yDC, myInfo.zDC, myInfo.phiDC, myInfo.thetaDC, myInfo.edgeDC);
+		readCALInfo(calBank, pindex, myInfo.sectorCAL, myInfo.energyCAL, myInfo.xCAL, myInfo.yCAL, myInfo.zCAL, myInfo.luCAL, myInfo.lvCAL, myInfo.lwCAL, myInfo.thetaCAL, myInfo.phiCAL, myInfo.timeCAL, myInfo.pathCAL, myInfo.energySumCAL);
+		readDCInfo(trajBank, pindex, myInfo.sectorDC, myInfo.xDC, myInfo.yDC, myInfo.zDC, myInfo.thetaDC, myInfo.phiDC, myInfo.edgeDC);
 		readTrackInfo(trackBank, pindex, myInfo.sectorTrack, myInfo.chi2Track, myInfo.ndfTrack, myInfo.chi2ndfTrack);
+		readFTOFInfo(sciBank, pindex, myInfo.sectorFTOF, myInfo.energyFTOF, myInfo.xFTOF, myInfo.yFTOF, myInfo.zFTOF, myInfo.timeFTOF, myInfo.pathFTOF);
 		readCheInfo(cheBank, pindex, myInfo.detectorChe, myInfo.sectorChe, myInfo.npheChe, myInfo.timeChe, myInfo.pathChe, myInfo.chi2Che, myInfo.xChe, myInfo.yChe, myInfo.zChe, myInfo.dThetaChe, myInfo.dPhiChe, myInfo.statusChe);
 		readRichInfo(richBank, pindex, myInfo.pidRICH, myInfo.RQRICH, myInfo.ReQRICH, myInfo.elLogLRICH, myInfo.piLogLRICH, myInfo.kLogLRICH, myInfo.prLogLRICH, myInfo.bestChRICH, myInfo.bestC2RICH, myInfo.bestRLRICH, myInfo.bestNtotRICH, myInfo.bestMassRICH);
 		partDeteVect.emplace_back(myInfo);
 	}
 }
 
-void readPrDeteBank(const hipo::bank &calBank, const hipo::bank &trajBank, const hipo::bank &trackBank, const hipo::bank &cheBank, const vector<recParticle> &partVect, vector<prDeteInfo> &partDeteVect) {
+void readPrDeteBank(const hipo::bank &calBank, const hipo::bank &trajBank, const hipo::bank &trackBank, const hipo::bank &sciBank, const hipo::bank &cheBank, const vector<recParticle> &partVect, vector<prDeteInfo> &partDeteVect) {
 	partDeteVect.clear();
 	Int_t num = partVect.size();
 	for (Int_t iPart=0; iPart<num; iPart++) {
 		prDeteInfo myInfo{};
 		Int_t pindex = partVect[iPart].pindex;
-		readCALInfo(calBank, pindex, myInfo.sectorCAL, myInfo.energyCAL, myInfo.xCAL, myInfo.yCAL, myInfo.zCAL, myInfo.luCAL, myInfo.lvCAL, myInfo.lwCAL, myInfo.phiCAL, myInfo.thetaCAL, myInfo.timeCAL, myInfo.pathCAL, myInfo.energySumCAL);
-		readDCInfo(trajBank, pindex, myInfo.sectorDC, myInfo.xDC, myInfo.yDC, myInfo.zDC, myInfo.phiDC, myInfo.thetaDC, myInfo.edgeDC);
+		readCALInfo(calBank, pindex, myInfo.sectorCAL, myInfo.energyCAL, myInfo.xCAL, myInfo.yCAL, myInfo.zCAL, myInfo.luCAL, myInfo.lvCAL, myInfo.lwCAL, myInfo.thetaCAL, myInfo.phiCAL, myInfo.timeCAL, myInfo.pathCAL, myInfo.energySumCAL);
+		readDCInfo(trajBank, pindex, myInfo.sectorDC, myInfo.xDC, myInfo.yDC, myInfo.zDC, myInfo.thetaDC, myInfo.phiDC, myInfo.edgeDC);
 		readTrackInfo(trackBank, pindex, myInfo.sectorTrack, myInfo.chi2Track, myInfo.ndfTrack, myInfo.chi2ndfTrack);
+		readFTOFInfo(sciBank, pindex, myInfo.sectorFTOF, myInfo.energyFTOF, myInfo.xFTOF, myInfo.yFTOF, myInfo.zFTOF, myInfo.timeFTOF, myInfo.pathFTOF);
 		readCheInfo(cheBank, pindex, myInfo.detectorChe, myInfo.sectorChe, myInfo.npheChe, myInfo.timeChe, myInfo.pathChe, myInfo.chi2Che, myInfo.xChe, myInfo.yChe, myInfo.zChe, myInfo.dThetaChe, myInfo.dPhiChe, myInfo.statusChe);
 		partDeteVect.emplace_back(myInfo);
 	}

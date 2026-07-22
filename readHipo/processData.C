@@ -28,6 +28,7 @@ void processData(string inputFile, string outputFile, Float_t EBeam, Float_t tar
 	hipo::bank calBank(factory.getSchema("REC::Calorimeter"));
 	hipo::bank trajBank(factory.getSchema("REC::Traj"));
 	hipo::bank trackBank(factory.getSchema("REC::Track"));
+	hipo::bank sciBank(factory.getSchema("REC::Scintillator"));
 	hipo::bank cheBank(factory.getSchema("REC::Cherenkov"));
 	hipo::bank richBank(factory.getSchema("RICH::Particle"));
 	hipo::event event;
@@ -57,6 +58,7 @@ void processData(string inputFile, string outputFile, Float_t EBeam, Float_t tar
 		event.getStructure(calBank);
 		event.getStructure(trajBank);
 		event.getStructure(trackBank);
+		event.getStructure(sciBank);
 		event.getStructure(cheBank);
 		event.getStructure(richBank);
 		globalInfo myGlobalInfo = readGlobalInfo(configBank, eventBank, iEvent, EBeam, targetPol, epoch);
@@ -72,9 +74,9 @@ void processData(string inputFile, string outputFile, Float_t EBeam, Float_t tar
 		vector<elDeteInfo> elDeteVect;
 		vector<kaDeteInfo> kaDeteVect;
 		vector<prDeteInfo> prDeteVect;
-		readElDeteBank(calBank, trajBank, trackBank, cheBank, phVect, elVect, elDeteVect);
-		readKaDeteBank(calBank, trajBank, trackBank, cheBank, richBank, kaVect, kaDeteVect);
-		readPrDeteBank(calBank, trajBank, trackBank, cheBank, prVect, prDeteVect);
+		readElDeteBank(calBank, trajBank, trackBank, sciBank, cheBank, phVect, elVect, elDeteVect);
+		readKaDeteBank(calBank, trajBank, trackBank, sciBank, cheBank, richBank, kaVect, kaDeteVect);
+		readPrDeteBank(calBank, trajBank, trackBank, sciBank, cheBank, prVect, prDeteVect);
 		myLambdaTree.fill(elVect, kaVect, prVect, elDeteVect, kaDeteVect, prDeteVect);
 	}
 	myLambdaTree.write();

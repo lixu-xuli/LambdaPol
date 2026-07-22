@@ -41,8 +41,8 @@ class preTree
     		myTTree.Branch(name+"_M", &(paraPart->M), name+"_M/F");
     		myTTree.Branch(name+"_P", &(paraPart->P), name+"_P/F");
     		myTTree.Branch(name+"_E", &(paraPart->E), name+"_E/F");
-    		myTTree.Branch(name+"_phi", &(paraPart->phi), name+"_phi/F");
     		myTTree.Branch(name+"_theta", &(paraPart->theta), name+"_theta/F");
+    		myTTree.Branch(name+"_phi", &(paraPart->phi), name+"_phi/F");
     		myTTree.Branch(name+"_px", &(paraPart->px), name+"_px/F");
     		myTTree.Branch(name+"_py", &(paraPart->py), name+"_py/F");
     		myTTree.Branch(name+"_pz", &(paraPart->pz), name+"_pz/F");
@@ -74,8 +74,8 @@ class preTree
 			myTTree.Branch(name+"_CAL_lu", &(paraDete->luCAL), name+"_CAL_lu[3]/F");
 			myTTree.Branch(name+"_CAL_lv", &(paraDete->lvCAL), name+"_CAL_lv[3]/F");
 			myTTree.Branch(name+"_CAL_lw", &(paraDete->lwCAL), name+"_CAL_lw[3]/F");
-			myTTree.Branch(name+"_CAL_phi", &(paraDete->phiCAL), name+"_CAL_phi[3]/F");
 			myTTree.Branch(name+"_CAL_theta", &(paraDete->thetaCAL), name+"_CAL_theta[3]/F");
+			myTTree.Branch(name+"_CAL_phi", &(paraDete->phiCAL), name+"_CAL_phi[3]/F");
 			myTTree.Branch(name+"_CAL_time", &(paraDete->timeCAL), name+"_CAL_time[3]/F");
 			myTTree.Branch(name+"_CAL_path", &(paraDete->pathCAL), name+"_CAL_path[3]/F");
 			myTTree.Branch(name+"_CAL_energySum", &(paraDete->energySumCAL), name+"_CAL_energySum/F");
@@ -85,13 +85,22 @@ class preTree
 			myTTree.Branch(name+"_DC_x", &(paraDete->xDC), name+"_DC_x[3]/F");
 			myTTree.Branch(name+"_DC_y", &(paraDete->yDC), name+"_DC_y[3]/F");
 			myTTree.Branch(name+"_DC_z", &(paraDete->zDC), name+"_DC_z[3]/F");
-			myTTree.Branch(name+"_DC_phi", &(paraDete->phiDC), name+"_DC_phi[3]/F");
 			myTTree.Branch(name+"_DC_theta", &(paraDete->thetaDC), name+"_DC_theta[3]/F");
+			myTTree.Branch(name+"_DC_phi", &(paraDete->phiDC), name+"_DC_phi[3]/F");
 			myTTree.Branch(name+"_DC_edge", &(paraDete->edgeDC), name+"_DC_edge[3]/F");
 			myTTree.Branch(name+"_track_sector", &(paraDete->sectorTrack), name+"_track_sector/I");
 			myTTree.Branch(name+"_track_chi2", &(paraDete->chi2Track), name+"_track_chi2/F");
 			myTTree.Branch(name+"_track_ndf", &(paraDete->ndfTrack), name+"_track_ndf/I");
 			myTTree.Branch(name+"_track_chi2ndf", &(paraDete->chi2ndfTrack), name+"_track_chi2ndf/F");
+		}
+		void addFtofBranch(TString name, ftofInfo* paraDete) {
+			myTTree.Branch(name+"_FTOF_sector", &(paraDete->sectorFTOF), name+"_FTOF_sector[3]/I");
+			myTTree.Branch(name+"_FTOF_energy", &(paraDete->energyFTOF), name+"_FTOF_energy[3]/F");
+			myTTree.Branch(name+"_FTOF_x", &(paraDete->xFTOF), name+"_FTOF_x[3]/F");
+			myTTree.Branch(name+"_FTOF_y", &(paraDete->yFTOF), name+"_FTOF_y[3]/F");
+			myTTree.Branch(name+"_FTOF_z", &(paraDete->zFTOF), name+"_FTOF_z[3]/F");
+			myTTree.Branch(name+"_FTOF_time", &(paraDete->timeFTOF), name+"_FTOF_time[3]/F");
+			myTTree.Branch(name+"_FTOF_path", &(paraDete->pathFTOF), name+"_FTOF_path[3]/F");
 		}
 		void addCheBranch(TString name, cheInfo* paraDete) {
 			myTTree.Branch(name+"_Che_detector", &(paraDete->detectorChe), name+"_Che_detector[3]/I");
@@ -136,18 +145,21 @@ class preTree
 		void addElDeteBranch(TString name, elDeteInfo* paraDete) {
 			addCalBranch(name, paraDete);
 			addTrackBranch(name, paraDete);
+			addFtofBranch(name, paraDete);
 			addCheBranch(name, paraDete);
 			addRadPhBranch(name, paraDete);
 		}
 		void addKaDeteBranch(TString name, kaDeteInfo* paraDete) {
 			addCalBranch(name, paraDete);
 			addTrackBranch(name, paraDete);
+			addFtofBranch(name, paraDete);
 			addCheBranch(name, paraDete);
 			addRichBranch(name, paraDete);
 		}
 		void addPrDeteBranch(TString name, prDeteInfo* paraDete) {
 			addCalBranch(name, paraDete);
 			addTrackBranch(name, paraDete);
+			addFtofBranch(name, paraDete);
 			addCheBranch(name, paraDete);
 		}
 		void addLamNoPiBranch(TString name, lamNoPi* paraLamNoPi) {
@@ -156,26 +168,29 @@ class preTree
     		myTTree.Branch(name+"virPh_pz", &(paraLamNoPi->virPhPz), name+"virPh_pz/F");
     		myTTree.Branch(name+"virPh_P", &(paraLamNoPi->virPhP), name+"virPh_P/F");
     		myTTree.Branch(name+"virPh_E", &(paraLamNoPi->virPhE), name+"virPh_E/F");
-    		myTTree.Branch(name+"virPh_phi", &(paraLamNoPi->virPhPhi), name+"virPh_phi/F");
+    		myTTree.Branch(name+"virPh_M2", &(paraLamNoPi->virPhM2), name+"virPh_M2/F");
+    		myTTree.Branch(name+"virPh_M", &(paraLamNoPi->virPhM), name+"virPh_M/F");
     		myTTree.Branch(name+"virPh_theta", &(paraLamNoPi->virPhTheta), name+"virPh_theta/F");
+    		myTTree.Branch(name+"virPh_phi", &(paraLamNoPi->virPhPhi), name+"virPh_phi/F");
     		myTTree.Branch(name+"misLam_px", &(paraLamNoPi->misLamPx), name+"misLam_px/F");
     		myTTree.Branch(name+"misLam_py", &(paraLamNoPi->misLamPy), name+"misLam_py/F");
     		myTTree.Branch(name+"misLam_pz", &(paraLamNoPi->misLamPz), name+"misLam_pz/F");
-    		myTTree.Branch(name+"misLam_M2", &(paraLamNoPi->misLamM2), name+"misLam_M2/F");
-    		myTTree.Branch(name+"misLam_M", &(paraLamNoPi->misLamM), name+"misLam_M/F");
     		myTTree.Branch(name+"misLam_P", &(paraLamNoPi->misLamP), name+"misLam_P/F");
     		myTTree.Branch(name+"misLam_E", &(paraLamNoPi->misLamE), name+"misLam_E/F");
-    		myTTree.Branch(name+"misLam_phi", &(paraLamNoPi->misLamPhi), name+"misLam_phi/F");
+    		myTTree.Branch(name+"misLam_M2", &(paraLamNoPi->misLamM2), name+"misLam_M2/F");
+    		myTTree.Branch(name+"misLam_M", &(paraLamNoPi->misLamM), name+"misLam_M/F");
     		myTTree.Branch(name+"misLam_theta", &(paraLamNoPi->misLamTheta), name+"misLam_theta/F");
+    		myTTree.Branch(name+"misLam_phi", &(paraLamNoPi->misLamPhi), name+"misLam_phi/F");
     		myTTree.Branch(name+"misPi_px", &(paraLamNoPi->misPiPx), name+"misPi_px/F");
     		myTTree.Branch(name+"misPi_py", &(paraLamNoPi->misPiPy), name+"misPi_py/F");
     		myTTree.Branch(name+"misPi_pz", &(paraLamNoPi->misPiPz), name+"misPi_pz/F");
-    		myTTree.Branch(name+"misPi_M2", &(paraLamNoPi->misPiM2), name+"misPi_M2/F");
-    		myTTree.Branch(name+"misPi_M", &(paraLamNoPi->misPiM), name+"misPi_M/F");
     		myTTree.Branch(name+"misPi_P", &(paraLamNoPi->misPiP), name+"misPi_P/F");
     		myTTree.Branch(name+"misPi_E", &(paraLamNoPi->misPiE), name+"misPi_E/F");
-    		myTTree.Branch(name+"misPi_phi", &(paraLamNoPi->misPiPhi), name+"misPi_phi/F");
+    		myTTree.Branch(name+"misPi_M2", &(paraLamNoPi->misPiM2), name+"misPi_M2/F");
+    		myTTree.Branch(name+"misPi_M", &(paraLamNoPi->misPiM), name+"misPi_M/F");
     		myTTree.Branch(name+"misPi_theta", &(paraLamNoPi->misPiTheta), name+"misPi_theta/F");
+    		myTTree.Branch(name+"misPi_phi", &(paraLamNoPi->misPiPhi), name+"misPi_phi/F");
+    		myTTree.Branch(name+"exclusive_chi2", &(paraLamNoPi->exclChi2), name+"exclusive_chi2/F");
     		myTTree.Branch(name+"Q2", &(paraLamNoPi->Q2), name+"Q2/F");
     		myTTree.Branch(name+"W", &(paraLamNoPi->W), name+"W/F");
     		myTTree.Branch(name+"Xbj", &(paraLamNoPi->Xbj), name+"Xbj/F");
@@ -183,20 +198,57 @@ class preTree
     		myTTree.Branch(name+"phi_virPh", &(paraLamNoPi->phiVirPh), name+"phi_virPh/F");
     		myTTree.Branch(name+"phi_proton", &(paraLamNoPi->phiProton), name+"phi_proton/F");
     		myTTree.Branch(name+"delta_phi", &(paraLamNoPi->deltaPhi), name+"delta_phi/F");
+    		myTTree.Branch(name+"virPh_px_CM", &(paraLamNoPi->virPhPxCM), name+"virPh_px_CM/F");
+    		myTTree.Branch(name+"virPh_py_CM", &(paraLamNoPi->virPhPyCM), name+"virPh_py_CM/F");
+    		myTTree.Branch(name+"virPh_pz_CM", &(paraLamNoPi->virPhPzCM), name+"virPh_pz_CM/F");
+    		myTTree.Branch(name+"virPh_P_CM", &(paraLamNoPi->virPhPCM), name+"virPh_P_CM/F");
+    		myTTree.Branch(name+"virPh_E_CM", &(paraLamNoPi->virPhECM), name+"virPh_E_CM/F");
+    		myTTree.Branch(name+"virPh_theta_CM", &(paraLamNoPi->virPhThetaCM), name+"virPh_theta_CM/F");
+    		myTTree.Branch(name+"virPh_phi_CM", &(paraLamNoPi->virPhPhiCM), name+"virPh_phi_CM/F");
+    		myTTree.Branch(name+"target_px_CM", &(paraLamNoPi->targetPxCM), name+"target_px_CM/F");
+    		myTTree.Branch(name+"target_py_CM", &(paraLamNoPi->targetPyCM), name+"target_py_CM/F");
+    		myTTree.Branch(name+"target_pz_CM", &(paraLamNoPi->targetPzCM), name+"target_pz_CM/F");
+    		myTTree.Branch(name+"target_P_CM", &(paraLamNoPi->targetPCM), name+"target_P_CM/F");
+    		myTTree.Branch(name+"target_E_CM", &(paraLamNoPi->targetECM), name+"target_E_CM/F");
+    		myTTree.Branch(name+"target_theta_CM", &(paraLamNoPi->targetThetaCM), name+"target_theta_CM/F");
+    		myTTree.Branch(name+"target_phi_CM", &(paraLamNoPi->targetPhiCM), name+"target_phi_CM/F");
+    		myTTree.Branch(name+"ka_px_CM", &(paraLamNoPi->kaPxCM), name+"ka_px_CM/F");
+    		myTTree.Branch(name+"ka_py_CM", &(paraLamNoPi->kaPyCM), name+"ka_py_CM/F");
+    		myTTree.Branch(name+"ka_pz_CM", &(paraLamNoPi->kaPzCM), name+"ka_pz_CM/F");
+    		myTTree.Branch(name+"ka_P_CM", &(paraLamNoPi->kaPCM), name+"ka_P_CM/F");
+    		myTTree.Branch(name+"ka_E_CM", &(paraLamNoPi->kaECM), name+"ka_E_CM/F");
+    		myTTree.Branch(name+"ka_theta_CM", &(paraLamNoPi->kaThetaCM), name+"ka_theta_CM/F");
+    		myTTree.Branch(name+"ka_phi_CM", &(paraLamNoPi->kaPhiCM), name+"ka_phi_CM/F");
+    		myTTree.Branch(name+"misLam_px_CM", &(paraLamNoPi->misLamPxCM), name+"misLam_px_CM/F");
+    		myTTree.Branch(name+"misLam_py_CM", &(paraLamNoPi->misLamPyCM), name+"misLam_py_CM/F");
+    		myTTree.Branch(name+"misLam_pz_CM", &(paraLamNoPi->misLamPzCM), name+"misLam_pz_CM/F");
+    		myTTree.Branch(name+"misLam_P_CM", &(paraLamNoPi->misLamPCM), name+"misLam_P_CM/F");
+    		myTTree.Branch(name+"misLam_E_CM", &(paraLamNoPi->misLamECM), name+"misLam_E_CM/F");
+    		myTTree.Branch(name+"misLam_theta_CM", &(paraLamNoPi->misLamThetaCM), name+"misLam_theta_CM/F");
+    		myTTree.Branch(name+"misLam_phi_CM", &(paraLamNoPi->misLamPhiCM), name+"misLam_phi_CM/F");
+    		myTTree.Branch(name+"pr_px_CM", &(paraLamNoPi->prPxCM), name+"pr_px_CM/F");
+    		myTTree.Branch(name+"pr_py_CM", &(paraLamNoPi->prPyCM), name+"pr_py_CM/F");
+    		myTTree.Branch(name+"pr_pz_CM", &(paraLamNoPi->prPzCM), name+"pr_pz_CM/F");
+    		myTTree.Branch(name+"pr_P_CM", &(paraLamNoPi->prPCM), name+"pr_P_CM/F");
+    		myTTree.Branch(name+"pr_E_CM", &(paraLamNoPi->prECM), name+"pr_E_CM/F");
+    		myTTree.Branch(name+"pr_theta_CM", &(paraLamNoPi->prThetaCM), name+"pr_theta_CM/F");
+    		myTTree.Branch(name+"pr_phi_CM", &(paraLamNoPi->prPhiCM), name+"pr_phi_CM/F");
     		myTTree.Branch(name+"cosThetaK", &(paraLamNoPi->cosThetaK), name+"cosThetaK/F");
-    		myTTree.Branch(name+"exclusive_chi2", &(paraLamNoPi->exclChi2), name+"exclusive_chi2/F");
+    		myTTree.Branch(name+"cosThetaPrZ", &(paraLamNoPi->cosThetaPrZ), name+"cosThetaPrZ/F");
+    		myTTree.Branch(name+"cosThetaPrX", &(paraLamNoPi->cosThetaPrX), name+"cosThetaPrX/F");
+    		myTTree.Branch(name+"cosThetaPrY", &(paraLamNoPi->cosThetaPrY), name+"cosThetaPrY/F");
 		}
 		void addLamHasPiBranch(TString name, lamHasPi* paraLamHasPi) {
 			addLamNoPiBranch(name, paraLamHasPi);
     		myTTree.Branch(name+"lambda_px", &(paraLamHasPi->lambdaPx), name+"lambda_px/F");
     		myTTree.Branch(name+"lambda_py", &(paraLamHasPi->lambdaPy), name+"lambda_py/F");
     		myTTree.Branch(name+"lambda_pz", &(paraLamHasPi->lambdaPz), name+"lambda_pz/F");
-    		myTTree.Branch(name+"lambda_M2", &(paraLamHasPi->lambdaM2), name+"lambda_M2/F");
-    		myTTree.Branch(name+"lambda_M", &(paraLamHasPi->lambdaM), name+"lambda_M/F");
     		myTTree.Branch(name+"lambda_P", &(paraLamHasPi->lambdaP), name+"lambda_P/F");
     		myTTree.Branch(name+"lambda_E", &(paraLamHasPi->lambdaE), name+"lambda_E/F");
-    		myTTree.Branch(name+"lambda_phi", &(paraLamHasPi->lambdaPhi), name+"lambda_phi/F");
+    		myTTree.Branch(name+"lambda_M2", &(paraLamHasPi->lambdaM2), name+"lambda_M2/F");
+    		myTTree.Branch(name+"lambda_M", &(paraLamHasPi->lambdaM), name+"lambda_M/F");
     		myTTree.Branch(name+"lambda_theta", &(paraLamHasPi->lambdaTheta), name+"lambda_theta/F");
+    		myTTree.Branch(name+"lambda_phi", &(paraLamHasPi->lambdaPhi), name+"lambda_phi/F");
     		myTTree.Branch(name+"t_lambda", &(paraLamHasPi->tLambda), name+"t_lambda/F");
     		myTTree.Branch(name+"mM2_ep2ekpPiX", &(paraLamHasPi->mM2ep2ekpPiX), name+"mM2_ep2ekpPiX/F");
     		myTTree.Branch(name+"mP_ep2ekpPiX", &(paraLamHasPi->mPep2ekpPiX), name+"mP_ep2ekpPiX/F");
@@ -206,12 +258,12 @@ class preTree
     		myTTree.Branch(name+"sigma_px", &(paraSigmaZero->sigmaPx), name+"sigma_px/F");
     		myTTree.Branch(name+"sigma_py", &(paraSigmaZero->sigmaPy), name+"sigma_py/F");
     		myTTree.Branch(name+"sigma_pz", &(paraSigmaZero->sigmaPz), name+"sigma_pz/F");
-    		myTTree.Branch(name+"sigma_M2", &(paraSigmaZero->sigmaM2), name+"sigma_M2/F");
-    		myTTree.Branch(name+"sigma_M", &(paraSigmaZero->sigmaM), name+"sigma_M/F");
     		myTTree.Branch(name+"sigma_P", &(paraSigmaZero->sigmaP), name+"sigma_P/F");
     		myTTree.Branch(name+"sigma_E", &(paraSigmaZero->sigmaE), name+"sigma_E/F");
-    		myTTree.Branch(name+"sigma_phi", &(paraSigmaZero->sigmaPhi), name+"sigma_phi/F");
+    		myTTree.Branch(name+"sigma_M2", &(paraSigmaZero->sigmaM2), name+"sigma_M2/F");
+    		myTTree.Branch(name+"sigma_M", &(paraSigmaZero->sigmaM), name+"sigma_M/F");
     		myTTree.Branch(name+"sigma_theta", &(paraSigmaZero->sigmaTheta), name+"sigma_theta/F");
+    		myTTree.Branch(name+"sigma_phi", &(paraSigmaZero->sigmaPhi), name+"sigma_phi/F");
     		myTTree.Branch(name+"t_sigma", &(paraSigmaZero->tSigma), name+"t_sigma/F");
     		myTTree.Branch(name+"mM2_ep2ekpPigX", &(paraSigmaZero->mM2ep2ekpPigX), name+"mM2_ep2ekpPigX/F");
     		myTTree.Branch(name+"mP_ep2ekpPigX", &(paraSigmaZero->mPep2ekpPigX), name+"mP_ep2ekpPigX/F");
@@ -221,21 +273,21 @@ class preTree
     		myTTree.Branch(name+"realMisPi_px", &(paraPipiBkg->realMisPiPx), name+"realMisPi_px/F");
     		myTTree.Branch(name+"realMisPi_py", &(paraPipiBkg->realMisPiPy), name+"realMisPi_py/F");
     		myTTree.Branch(name+"realMisPi_pz", &(paraPipiBkg->realMisPiPz), name+"realMisPi_pz/F");
-    		myTTree.Branch(name+"realMisPi_M2", &(paraPipiBkg->realMisPiM2), name+"realMisPi_M2/F");
-    		myTTree.Branch(name+"realMisPi_M", &(paraPipiBkg->realMisPiM), name+"realMisPi_M/F");
     		myTTree.Branch(name+"realMisPi_P", &(paraPipiBkg->realMisPiP), name+"realMisPi_P/F");
     		myTTree.Branch(name+"realMisPi_E", &(paraPipiBkg->realMisPiE), name+"realMisPi_E/F");
-    		myTTree.Branch(name+"realMisPi_phi", &(paraPipiBkg->realMisPiPhi), name+"realMisPi_phi/F");
+    		myTTree.Branch(name+"realMisPi_M2", &(paraPipiBkg->realMisPiM2), name+"realMisPi_M2/F");
+    		myTTree.Branch(name+"realMisPi_M", &(paraPipiBkg->realMisPiM), name+"realMisPi_M/F");
     		myTTree.Branch(name+"realMisPi_theta", &(paraPipiBkg->realMisPiTheta), name+"realMisPi_theta/F");
+    		myTTree.Branch(name+"realMisPi_phi", &(paraPipiBkg->realMisPiPhi), name+"realMisPi_phi/F");
     		myTTree.Branch(name+"realMisPrPi_px", &(paraPipiBkg->realMisPrPiPx), name+"realMisPrPi_px/F");
     		myTTree.Branch(name+"realMisPrPi_py", &(paraPipiBkg->realMisPrPiPy), name+"realMisPrPi_py/F");
     		myTTree.Branch(name+"realMisPrPi_pz", &(paraPipiBkg->realMisPrPiPz), name+"realMisPrPi_pz/F");
-    		myTTree.Branch(name+"realMisPrPi_M2", &(paraPipiBkg->realMisPrPiM2), name+"realMisPrPi_M2/F");
-    		myTTree.Branch(name+"realMisPrPi_M", &(paraPipiBkg->realMisPrPiM), name+"realMisPrPi_M/F");
     		myTTree.Branch(name+"realMisPrPi_P", &(paraPipiBkg->realMisPrPiP), name+"realMisPrPi_P/F");
     		myTTree.Branch(name+"realMisPrPi_E", &(paraPipiBkg->realMisPrPiE), name+"realMisPrPi_E/F");
-    		myTTree.Branch(name+"realMisPrPi_phi", &(paraPipiBkg->realMisPrPiPhi), name+"realMisPrPi_phi/F");
+    		myTTree.Branch(name+"realMisPrPi_M2", &(paraPipiBkg->realMisPrPiM2), name+"realMisPrPi_M2/F");
+    		myTTree.Branch(name+"realMisPrPi_M", &(paraPipiBkg->realMisPrPiM), name+"realMisPrPi_M/F");
     		myTTree.Branch(name+"realMisPrPi_theta", &(paraPipiBkg->realMisPrPiTheta), name+"realMisPrPi_theta/F");
+    		myTTree.Branch(name+"realMisPrPi_phi", &(paraPipiBkg->realMisPrPiPhi), name+"realMisPrPi_phi/F");
 		}
 		TTree myTTree;
 };
