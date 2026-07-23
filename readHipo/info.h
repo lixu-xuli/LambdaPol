@@ -312,7 +312,7 @@ class lamNoPi
 			PxPyPzEVector kaPVecCM = boostCM(kaPVec);
 			PxPyPzEVector misLamPVecCM = boostCM(misLamPVec);
 			PxPyPzEVector prPVecCM = boostCM(prPVec);
-			XYZVector zPrimeAxis = misLamPVecCM.Vect();
+			XYZVector zPrimeAxis = kaPVecCM.Vect();
 			XYZVector yPrimeAxis = virPhPVecCM.Vect().Cross(kaPVecCM.Vect());
 			XYZVector xPrimeAxis = yPrimeAxis.Cross(zPrimeAxis);
 			setPVecValues(virPhPVecCM, xPrimeAxis, yPrimeAxis, zPrimeAxis, virPhPxCM, virPhPyCM, virPhPzCM, virPhPCM, virPhECM, virPhThetaCM, virPhPhiCM);
